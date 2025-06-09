@@ -59,7 +59,8 @@ class GraphAIAgent:
             state = AgentState(**{**vars(state), **researcher_out})
             st_container.markdown(f"**Research:**\n{state.context.split('Research:',1)[-1].strip()}")
 
-        # Responder (streamed)
+        # Responder (streamed) - Generate response but don't display yet
+        st_container.markdown("💬 **Responder:** Generating answer...")
         responder_prompt = f"""You are a helpful AI assistant. Provide a comprehensive, accurate,
 and well-structured response based on the analysis and context provided.
 
@@ -72,14 +73,10 @@ Analysis: {state.analysis}
 
 Provide a complete and helpful response that takes into account the conversation history.
 """
-        st_container.markdown("💬 **Responder:** Generating answer...")
         messages = [HumanMessage(content=responder_prompt)]
         full_response = ""
-        response_placeholder = st_container.empty()
         for chunk in self.llm.stream(messages):
             full_response += chunk.content
-            response_placeholder.markdown(full_response + "▌")
-        response_placeholder.markdown(full_response)
         state.response = full_response
 
         # Validator
@@ -88,6 +85,18 @@ Provide a complete and helpful response that takes into account the conversation
         state = AgentState(**{**vars(state), **validator_out})
         validation = state.context.split("Validation:",1)[-1].strip()
         st_container.markdown(f"**Validation:**\n{validation}")
+
+        # Now display the final answer after validation
+        st_container.markdown("---")
+        st_container.markdown("### 🎯 **Final Answer:**")
+        response_placeholder = st_container.empty()
+        
+        # Stream the response character by character for effect
+        displayed_response = ""
+        for char in full_response:
+            displayed_response += char
+            response_placeholder.markdown(displayed_response + "▌")
+        response_placeholder.markdown(full_response)
 
         return full_response
 
@@ -160,9 +169,144 @@ Provide a complete and helpful response that takes into account the conversation
         validation = response.content
         return {"context": f"{state.context}\n\nValidation: {validation}"}
 
+# --- Nord Theme CSS ---
+nord_theme_css = """
+<style>
+    /* Nord Color Palette */
+    :root {
+        --nord0: #2e3440;
+        --nord1: #3b4252;
+        --nord2: #434c5e;
+        --nord3: #4c566a;
+        --nord4: #d8dee9;
+        --nord5: #e5e9f0;
+        --nord6: #eceff4;
+        --nord7: #8fbcbb;
+        --nord8: #88c0d0;
+        --nord9: #81a1c1;
+        --nord10: #5e81ac;
+        --nord11: #bf616a;
+        --nord12: #d08770;
+        --nord13: #ebcb8b;
+        --nord14: #a3be8c;
+        --nord15: #b48ead;
+    }
+
+    /* Main app background */
+    .stApp {
+        background-color: var(--nord0) !important;
+        color: var(--nord4) !important;
+    }
+
+    /* Sidebar */
+    .css-1d391kg {
+        background-color: var(--nord1) !important;
+    }
+
+    /* Chat messages */
+    .stChatMessage {
+        background-color: var(--nord1) !important;
+        border: 1px solid var(--nord2) !important;
+        border-radius: 10px !important;
+    }
+
+    /* User messages */
+    .stChatMessage[data-testid="user-message"] {
+        background-color: var(--nord10) !important;
+        color: var(--nord6) !important;
+    }
+
+    /* Assistant messages */
+    .stChatMessage[data-testid="assistant-message"] {
+        background-color: var(--nord2) !important;
+        color: var(--nord4) !important;
+    }
+
+    /* Chat input */
+    .stChatInput > div > div > input {
+        background-color: var(--nord1) !important;
+        color: var(--nord4) !important;
+        border: 1px solid var(--nord3) !important;
+        border-radius: 10px !important;
+    }
+
+    /* Text elements */
+    .stMarkdown {
+        color: var(--nord4) !important;
+    }
+
+    /* Headers */
+    h1, h2, h3, h4, h5, h6 {
+        color: var(--nord8) !important;
+    }
+
+    /* Code blocks */
+    .stCode {
+        background-color: var(--nord1) !important;
+        color: var(--nord13) !important;
+        border: 1px solid var(--nord2) !important;
+    }
+
+    /* Buttons */
+    .stButton > button {
+        background-color: var(--nord10) !important;
+        color: var(--nord6) !important;
+        border: none !important;
+        border-radius: 5px !important;
+    }
+
+    .stButton > button:hover {
+        background-color: var(--nord9) !important;
+    }
+
+    /* Links */
+    a {
+        color: var(--nord8) !important;
+    }
+
+    /* Expander */
+    .streamlit-expanderHeader {
+        background-color: var(--nord1) !important;
+        color: var(--nord4) !important;
+    }
+
+    /* Metrics */
+    .metric-container {
+        background-color: var(--nord1) !important;
+        border: 1px solid var(--nord2) !important;
+        border-radius: 5px !important;
+    }
+
+    /* Success/Info/Warning/Error messages */
+    .stSuccess {
+        background-color: var(--nord14) !important;
+        color: var(--nord0) !important;
+    }
+
+    .stInfo {
+        background-color: var(--nord8) !important;
+        color: var(--nord0) !important;
+    }
+
+    .stWarning {
+        background-color: var(--nord13) !important;
+        color: var(--nord0) !important;
+    }
+
+    .stError {
+        background-color: var(--nord11) !important;
+        color: var(--nord6) !important;
+    }
+</style>
+"""
+
 # --- Streamlit UI ---
 
-st.set_page_config(page_title="Graph AI Agent", page_icon="🤖")
+st.set_page_config(page_title="Graph AI Agent", page_icon="🤖", layout="wide")
+
+# Apply Nord theme
+st.markdown(nord_theme_css, unsafe_allow_html=True)
+
 st.title("🤖 Graph AI Agent (LangGraph + Gemini)")
 
 if "chat_history" not in st.session_state:
