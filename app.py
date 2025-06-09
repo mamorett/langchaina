@@ -1,4 +1,3 @@
-import os
 import streamlit as st
 from typing import Dict, Any, List
 from dataclasses import dataclass
@@ -169,7 +168,7 @@ Provide a complete and helpful response that takes into account the conversation
         validation = response.content
         return {"context": f"{state.context}\n\nValidation: {validation}"}
 
-# --- Nord Theme CSS ---
+# --- Nord Theme CSS with Centered Layout ---
 nord_theme_css = """
 <style>
     /* Nord Color Palette */
@@ -198,6 +197,14 @@ nord_theme_css = """
         color: var(--nord4) !important;
     }
 
+    /* Center the main content and limit width */
+    .main .block-container {
+        max-width: 800px !important;
+        padding-left: 2rem !important;
+        padding-right: 2rem !important;
+        margin: 0 auto !important;
+    }
+
     /* Sidebar */
     .css-1d391kg {
         background-color: var(--nord1) !important;
@@ -208,6 +215,7 @@ nord_theme_css = """
         background-color: var(--nord1) !important;
         border: 1px solid var(--nord2) !important;
         border-radius: 10px !important;
+        max-width: 100% !important;
     }
 
     /* User messages */
@@ -220,6 +228,12 @@ nord_theme_css = """
     .stChatMessage[data-testid="assistant-message"] {
         background-color: var(--nord2) !important;
         color: var(--nord4) !important;
+    }
+
+    /* Chat input container */
+    .stChatInput {
+        max-width: 800px !important;
+        margin: 0 auto !important;
     }
 
     /* Chat input */
@@ -297,12 +311,17 @@ nord_theme_css = """
         background-color: var(--nord11) !important;
         color: var(--nord6) !important;
     }
+
+    /* Title centering */
+    .main h1 {
+        text-align: center !important;
+    }
 </style>
 """
 
 # --- Streamlit UI ---
 
-st.set_page_config(page_title="Graph AI Agent", page_icon="🤖", layout="wide")
+st.set_page_config(page_title="Graph AI Agent", page_icon="🤖")  # Removed layout="wide"
 
 # Apply Nord theme
 st.markdown(nord_theme_css, unsafe_allow_html=True)
